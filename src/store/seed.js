@@ -50,6 +50,26 @@ function seed() {
       status: 'active',
       withdrawn: 250,
     },
+    // Completed stream, fully streamed and fully withdrawn.
+    {
+      sender: 'GCAROL0000000000000000000000000000000000000000000000000000',
+      recipient: 'GDAVE00000000000000000000000000000000000000000000000000000',
+      total: 750,
+      startTime: now - 2 * DAY,
+      endTime: now - DAY,
+      status: 'completed',
+      withdrawn: 750,
+    },
+    // Cancelled stream; recipient kept what had streamed at cancellation time.
+    {
+      sender: 'GALICE000000000000000000000000000000000000000000000000000',
+      recipient: 'GBOB00000000000000000000000000000000000000000000000000000',
+      total: 1200,
+      startTime: now - 3 * HOUR,
+      endTime: now + 5 * HOUR,
+      status: 'cancelled',
+      withdrawn: 450,
+    },
   ];
 
   for (const s of samples) {
