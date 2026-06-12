@@ -20,6 +20,7 @@ router.param('id', (req, res, next, id) => {
 router.post('/streams', validate(validateCreateStream), asyncHandler(streamController.create));
 router.get('/streams', streamController.list);
 router.get('/streams/:id', streamController.getById);
+router.get('/streams/:id/schedule', streamController.getSchedule);
 router.post('/streams/:id/withdraw', validate(validateWithdraw), asyncHandler(streamController.withdraw));
 router.post('/streams/:id/cancel', asyncHandler(streamController.cancel));
 

@@ -39,6 +39,15 @@ function getById(req, res) {
 }
 
 /**
+ * GET /api/streams/:id/schedule
+ * Return the stream's vesting schedule and projected milestones.
+ */
+function getSchedule(req, res) {
+  const schedule = streamService.getSchedule(req.params.id);
+  res.json({ schedule });
+}
+
+/**
  * POST /api/streams/:id/withdraw
  * Release the amount streamed-so-far to the recipient.
  */
@@ -57,4 +66,4 @@ async function cancel(req, res) {
   res.json(result);
 }
 
-module.exports = { create, list, getById, withdraw, cancel };
+module.exports = { create, list, getById, getSchedule, withdraw, cancel };

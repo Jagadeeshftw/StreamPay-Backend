@@ -83,6 +83,37 @@ const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
 
 /**
+ * Describe a stream's vesting schedule: its window, duration, the per-second
+ * release rate and a small set of projected milestones (start, quarter, half,
+ * three-quarter, end). Useful for rendering a vesting curve client-side.
+ */
+function getSchedule(id) {
+  const stream = store.getStream(id);
+  if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
+
+  const duration = Math.max(0, stream.endTime - stream.startTime);
+  const ratePerSecond = duration > 0 ? money.round(stream.total / duration) : 0;
+  const milestones = [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+    const time = stream.startTime + Math.round(duration * fraction);
+    return {
+      fraction,
+      time,
+      streamed: streamMath.streamedAmount(stream, time),
+    };
+  });
+
+  return {
+    id: stream.id,
+    startTime: stream.startTime,
+    endTime: stream.endTime,
+    durationSeconds: duration,
+    total: stream.total,
+    ratePerSecond,
+    milestones,
+  };
+}
+
+/**
  * List streams, optionally filtered by sender, recipient and/or status, with
  * `limit`/`offset` pagination. Returns the page of stream views together with
  * the total number of matches so callers can build pagination controls.
@@ -193,6 +224,7 @@ module.exports = {
   toView,
   createStream,
   getStream,
+  getSchedule,
   listStreams,
   withdraw,
   cancel,
