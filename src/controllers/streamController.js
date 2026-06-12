@@ -1,6 +1,8 @@
 'use strict';
 
 const streamService = require('../services/streamService');
+const ApiError = require('../utils/ApiError');
+const { ALL_STATUSES } = require('../constants/streamStatus');
 
 /**
  * POST /api/streams
@@ -19,6 +21,11 @@ async function create(req, res) {
  */
 function list(req, res) {
   const { sender, recipient, status, limit, offset } = req.query;
+  if (status !== undefined && !ALL_STATUSES.includes(status)) {
+    throw ApiError.badRequest(
+      `Invalid status filter; expected one of ${ALL_STATUSES.join(', ')}`
+    );
+  }
   const result = streamService.listStreams({ sender, recipient, status, limit, offset });
   res.json({
     count: result.streams.length,
