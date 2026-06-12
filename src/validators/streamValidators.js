@@ -9,6 +9,14 @@ const { nowSeconds } = require('../utils/time');
 // (e.g. milliseconds passed where seconds were expected).
 const MAX_DURATION_SECONDS = 10 * 365 * 24 * 3600;
 
+// Require a minimum window so a stream cannot release its entire total in a
+// single second, which makes the linear math meaningless.
+const MIN_DURATION_SECONDS = 60;
+
+// Guard against fat-finger amounts far larger than any realistic stream. Mainly
+// a sanity bound for this mock; a real ledger would enforce balance instead.
+const MAX_TOTAL = 1e12;
+
 /**
  * Validate the payload for creating a stream. Returns either { value } with a
  * cleaned record or { error } with a list of human-readable messages.
@@ -31,6 +39,7 @@ function validateCreateStream(body) {
 
   const total = money.parseAmount(body.total);
   if (total === null) errors.push('total must be a positive number');
+  else if (total > MAX_TOTAL) errors.push(`total must not exceed ${MAX_TOTAL}`);
 
   const now = nowSeconds();
   let startTime = body.startTime === undefined ? now : Number(body.startTime);
@@ -46,6 +55,8 @@ function validateCreateStream(body) {
     errors.push('endTime is required and must be a unix timestamp in seconds');
   } else if (endTime <= startTime) {
     errors.push('endTime must be after startTime');
+  } else if (endTime - startTime < MIN_DURATION_SECONDS) {
+    errors.push('stream duration must be at least 60 seconds');
   } else if (endTime - startTime > MAX_DURATION_SECONDS) {
     errors.push('stream duration must not exceed 10 years');
   }
