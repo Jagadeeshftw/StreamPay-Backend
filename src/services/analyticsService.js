@@ -26,6 +26,33 @@ function withdrawableForUser(user) {
 }
 
 /**
+ * Withdrawable summary grouped by recipient across every stream. Returns one
+ * entry per recipient with their aggregate withdrawable balance and stream
+ * count, sorted from largest balance to smallest. Recipients with nothing
+ * currently withdrawable are omitted.
+ */
+function withdrawableSummary() {
+  const at = nowSeconds();
+  const byRecipient = new Map();
+
+  for (const s of store.listStreams()) {
+    const amount = streamMath.withdrawableAmount(s, at);
+    if (amount <= 0) continue;
+    const entry = byRecipient.get(s.recipient) || { withdrawable: 0, streams: 0 };
+    entry.withdrawable = money.round(entry.withdrawable + amount);
+    entry.streams += 1;
+    byRecipient.set(s.recipient, entry);
+  }
+
+  const recipients = Array.from(byRecipient.entries())
+    .map(([recipient, entry]) => ({ recipient, ...entry }))
+    .sort((a, b) => b.withdrawable - a.withdrawable);
+
+  const totalWithdrawable = money.sum(recipients.map((r) => r.withdrawable));
+  return { totalWithdrawable, recipients };
+}
+
+/**
  * Protocol-wide analytics: total streamed across all streams, count of active
  * streams, and the total amount still locked.
  */
@@ -65,4 +92,4 @@ function overview() {
   };
 }
 
-module.exports = { withdrawableForUser, overview };
+module.exports = { withdrawableForUser, withdrawableSummary, overview };

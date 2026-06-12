@@ -16,6 +16,14 @@ function balances(req, res) {
 }
 
 /**
+ * GET /api/withdrawable
+ * Protocol-wide withdrawable balances grouped by recipient.
+ */
+function withdrawable(req, res) {
+  res.json(analyticsService.withdrawableSummary());
+}
+
+/**
  * GET /api/analytics
  * Protocol-wide totals: total streamed, active streams, total locked.
  */
@@ -23,4 +31,4 @@ function analytics(req, res) {
   res.json(analyticsService.overview());
 }
 
-module.exports = { balances, analytics };
+module.exports = { balances, withdrawable, analytics };
