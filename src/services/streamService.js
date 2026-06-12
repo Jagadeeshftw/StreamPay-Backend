@@ -86,6 +86,7 @@ function listStreams(filter = {}) {
     .listStreams()
     .filter((s) => (filter.sender ? s.sender === filter.sender : true))
     .filter((s) => (filter.recipient ? s.recipient === filter.recipient : true))
+    .filter((s) => (filter.status ? s.status === filter.status : true))
     .sort((a, b) => b.createdAt - a.createdAt)
     .map((s) => toView(s, at));
 }
