@@ -2,6 +2,7 @@
 
 const config = require('../config');
 const store = require('../store');
+const pkg = require('../../package.json');
 
 /**
  * GET /api/health
@@ -19,4 +20,18 @@ function health(req, res) {
   });
 }
 
-module.exports = { health };
+/**
+ * GET /api/version
+ * Report the running service version and a little build context. Handy for
+ * deploy verification and client-side compatibility checks.
+ */
+function version(req, res) {
+  res.json({
+    service: pkg.name,
+    version: pkg.version,
+    node: process.version,
+    env: config.env,
+  });
+}
+
+module.exports = { health, version };
