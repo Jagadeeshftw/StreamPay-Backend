@@ -48,4 +48,14 @@ function lockedAmount(stream, atTime) {
   return money.subtract(stream.total, streamed);
 }
 
-module.exports = { streamedAmount, withdrawableAmount, lockedAmount };
+/**
+ * Progress of a stream as a fraction in [0, 1] of total time elapsed.
+ */
+function progress(stream, atTime) {
+  const { startTime, endTime } = stream;
+  if (endTime <= startTime) return atTime >= startTime ? 1 : 0;
+  const elapsed = clamp(atTime, startTime, endTime) - startTime;
+  return Math.round((elapsed / (endTime - startTime)) * 10000) / 10000;
+}
+
+module.exports = { streamedAmount, withdrawableAmount, lockedAmount, progress };
