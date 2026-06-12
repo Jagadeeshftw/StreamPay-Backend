@@ -9,6 +9,7 @@ const { newStreamId } = require('../utils/ids');
 const { nowSeconds } = require('../utils/time');
 const money = require('../utils/money');
 const { STREAM_STATUS } = require('../constants/streamStatus');
+const { PAGINATION } = require('../constants/pagination');
 
 /**
  * Build the public-facing view of a stream, enriching the stored record with
@@ -78,9 +79,6 @@ function getStream(id) {
   if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
   return toView(stream);
 }
-
-const DEFAULT_LIMIT = 50;
-const MAX_LIMIT = 200;
 
 /**
  * Describe a stream's vesting schedule: its window, duration, the per-second
@@ -163,12 +161,13 @@ function listStreams(filter = {}) {
 }
 
 /**
- * Normalize a requested page size into [1, MAX_LIMIT], defaulting when absent.
+ * Normalize a requested page size into [MIN_LIMIT, MAX_LIMIT], defaulting when
+ * absent.
  */
 function clampLimit(value) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0) return DEFAULT_LIMIT;
-  return Math.min(Math.floor(n), MAX_LIMIT);
+  if (!Number.isFinite(n) || n <= 0) return PAGINATION.DEFAULT_LIMIT;
+  return Math.min(Math.max(Math.floor(n), PAGINATION.MIN_LIMIT), PAGINATION.MAX_LIMIT);
 }
 
 /**
