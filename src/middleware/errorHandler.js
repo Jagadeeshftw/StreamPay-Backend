@@ -23,6 +23,7 @@ module.exports = function errorHandler(err, req, res, next) {
     error: {
       message: err.message || 'Internal Server Error',
       status: statusCode,
+      code: isApiError ? err.code : ApiError.codeFor(statusCode),
     },
   };
 
