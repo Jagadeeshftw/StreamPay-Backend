@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const config = require('./config');
 const routes = require('./routes');
 const requestLogger = require('./middleware/requestLogger');
+const securityHeaders = require('./middleware/securityHeaders');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -18,6 +19,7 @@ function createApp() {
   const app = express();
 
   app.use(cors());
+  app.use(securityHeaders);
   app.use(express.json());
   app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
   app.use(requestLogger);
