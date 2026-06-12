@@ -11,6 +11,11 @@ const config = {
   port: parseInt(process.env.PORT, 10) || 4000,
   logLevel: process.env.LOG_LEVEL || 'info',
 
+  rateLimit: {
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 60000,
+    max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 120,
+  },
+
   stellar: {
     network: process.env.STELLAR_NETWORK || 'testnet',
     horizonUrl:
@@ -31,6 +36,12 @@ const config = {
 function validate(cfg) {
   if (!Number.isInteger(cfg.port) || cfg.port <= 0 || cfg.port > 65535) {
     throw new Error(`Invalid PORT: ${cfg.port}`);
+  }
+  if (!Number.isInteger(cfg.rateLimit.windowMs) || cfg.rateLimit.windowMs <= 0) {
+    throw new Error(`Invalid RATE_LIMIT_WINDOW_MS: ${cfg.rateLimit.windowMs}`);
+  }
+  if (!Number.isInteger(cfg.rateLimit.max) || cfg.rateLimit.max <= 0) {
+    throw new Error(`Invalid RATE_LIMIT_MAX: ${cfg.rateLimit.max}`);
   }
   return cfg;
 }
