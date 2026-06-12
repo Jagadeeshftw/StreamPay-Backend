@@ -25,12 +25,18 @@ class ApiError extends Error {
         return 'BAD_REQUEST';
       case 401:
         return 'UNAUTHORIZED';
+      case 403:
+        return 'FORBIDDEN';
       case 404:
         return 'NOT_FOUND';
       case 409:
         return 'CONFLICT';
+      case 422:
+        return 'UNPROCESSABLE_ENTITY';
       case 429:
         return 'RATE_LIMITED';
+      case 503:
+        return 'SERVICE_UNAVAILABLE';
       default:
         return statusCode >= 500 ? 'INTERNAL_ERROR' : 'ERROR';
     }
@@ -38,6 +44,10 @@ class ApiError extends Error {
 
   static badRequest(message, details) {
     return new ApiError(400, message, details);
+  }
+
+  static forbidden(message) {
+    return new ApiError(403, message || 'Forbidden');
   }
 
   static notFound(message) {
@@ -48,8 +58,16 @@ class ApiError extends Error {
     return new ApiError(409, message || 'Conflict');
   }
 
+  static unprocessable(message, details) {
+    return new ApiError(422, message || 'Unprocessable entity', details);
+  }
+
   static tooManyRequests(message) {
     return new ApiError(429, message || 'Too many requests');
+  }
+
+  static serviceUnavailable(message) {
+    return new ApiError(503, message || 'Service unavailable');
   }
 }
 
