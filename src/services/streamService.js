@@ -95,14 +95,22 @@ function listStreams(filter = {}) {
 /**
  * Release the streamed-so-far amount to the recipient.
  */
-async function withdraw(id) {
+async function withdraw(id, requestedAmount) {
   const stream = store.getStream(id);
   if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
 
   const now = nowSeconds();
-  const amount = streamMath.withdrawableAmount(stream, now);
-  if (amount <= 0) {
+  const available = streamMath.withdrawableAmount(stream, now);
+  if (available <= 0) {
     throw ApiError.badRequest('Nothing available to withdraw');
+  }
+
+  // Allow partial withdrawals; default to the full available amount.
+  const amount = requestedAmount ? money.round(requestedAmount) : available;
+  if (amount > available) {
+    throw ApiError.badRequest(
+      `Requested ${amount} exceeds withdrawable ${available}`
+    );
   }
 
   const release = await stellarService.releaseFunds({
