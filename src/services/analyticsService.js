@@ -35,6 +35,7 @@ function overview() {
   let totalStreamed = 0;
   let totalLocked = 0;
   let totalWithdrawn = 0;
+  let totalWithdrawable = 0;
   let active = 0;
   let cancelled = 0;
   let completed = 0;
@@ -43,6 +44,7 @@ function overview() {
     totalStreamed = money.round(totalStreamed + streamMath.streamedAmount(s, at));
     totalLocked = money.round(totalLocked + streamMath.lockedAmount(s, at));
     totalWithdrawn = money.round(totalWithdrawn + s.withdrawn);
+    totalWithdrawable = money.round(totalWithdrawable + streamMath.withdrawableAmount(s, at));
     if (s.status === STREAM_STATUS.ACTIVE) active += 1;
     if (s.status === STREAM_STATUS.CANCELLED) cancelled += 1;
     if (s.status === STREAM_STATUS.COMPLETED) completed += 1;
@@ -56,6 +58,7 @@ function overview() {
     totalStreamed,
     totalLocked,
     totalWithdrawn,
+    totalWithdrawable,
   };
 }
 
