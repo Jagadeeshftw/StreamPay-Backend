@@ -14,12 +14,19 @@ async function create(req, res) {
 
 /**
  * GET /api/streams
- * List streams, optionally filtered by ?sender= and/or ?recipient=.
+ * List streams, optionally filtered by ?sender=, ?recipient= and/or ?status=,
+ * with ?limit= and ?offset= pagination.
  */
 function list(req, res) {
-  const { sender, recipient, status } = req.query;
-  const streams = streamService.listStreams({ sender, recipient, status });
-  res.json({ count: streams.length, streams });
+  const { sender, recipient, status, limit, offset } = req.query;
+  const result = streamService.listStreams({ sender, recipient, status, limit, offset });
+  res.json({
+    count: result.streams.length,
+    total: result.total,
+    limit: result.limit,
+    offset: result.offset,
+    streams: result.streams,
+  });
 }
 
 /**

@@ -78,18 +78,46 @@ function getStream(id) {
   return toView(stream);
 }
 
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 200;
+
 /**
- * List streams, optionally filtered by sender and/or recipient.
+ * List streams, optionally filtered by sender, recipient and/or status, with
+ * `limit`/`offset` pagination. Returns the page of stream views together with
+ * the total number of matches so callers can build pagination controls.
  */
 function listStreams(filter = {}) {
   const at = nowSeconds();
-  return store
+  const matched = store
     .listStreams()
     .filter((s) => (filter.sender ? s.sender === filter.sender : true))
     .filter((s) => (filter.recipient ? s.recipient === filter.recipient : true))
     .filter((s) => (filter.status ? s.status === filter.status : true))
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .map((s) => toView(s, at));
+    .sort((a, b) => b.createdAt - a.createdAt);
+
+  const limit = clampLimit(filter.limit);
+  const offset = clampOffset(filter.offset);
+  const page = matched.slice(offset, offset + limit).map((s) => toView(s, at));
+
+  return { total: matched.length, limit, offset, streams: page };
+}
+
+/**
+ * Normalize a requested page size into [1, MAX_LIMIT], defaulting when absent.
+ */
+function clampLimit(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return DEFAULT_LIMIT;
+  return Math.min(Math.floor(n), MAX_LIMIT);
+}
+
+/**
+ * Normalize a requested offset into a non-negative integer.
+ */
+function clampOffset(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.floor(n);
 }
 
 /**
