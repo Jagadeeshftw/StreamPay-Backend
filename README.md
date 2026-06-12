@@ -36,6 +36,8 @@ All endpoints are mounted under `/api`.
 
 `GET /api/health` — liveness probe with runtime context.
 
+`GET /api/version` — service name, version and Node runtime, for deploy checks.
+
 ### Streams
 
 `POST /api/streams` — create a stream.
@@ -54,7 +56,9 @@ All endpoints are mounted under `/api`.
 after `startTime`. `total` must be a positive number.
 
 `GET /api/streams` — list streams. Optional query filters: `sender`,
-`recipient`, `status` (`active` | `completed` | `cancelled`).
+`recipient`, `status` (`active` | `completed` | `cancelled`). Paginated via
+`limit` (default 50, max 200) and `offset` (default 0); the response includes
+`count` (this page), `total` (all matches), `limit` and `offset`.
 
 `GET /api/streams/:id` — fetch a single stream.
 
@@ -70,6 +74,45 @@ withdraws the full available balance.
 
 `GET /api/analytics` — protocol-wide totals: total streamed, active streams,
 total locked.
+
+## Errors
+
+Errors use a consistent JSON envelope:
+
+```json
+{
+  "error": {
+    "message": "Stream stream_x not found",
+    "status": 404,
+    "code": "NOT_FOUND"
+  }
+}
+```
+
+`code` is a stable, machine-readable identifier (`BAD_REQUEST`, `NOT_FOUND`,
+`CONFLICT`, `RATE_LIMITED`, `INTERNAL_ERROR`) that clients can switch on
+independently of the human-readable `message`. Every response also carries an
+`X-Request-Id` header (echoed from the request when supplied) for log
+correlation.
+
+## Configuration
+
+All settings are read from environment variables (see `.env.example`):
+
+- `PORT`, `NODE_ENV`, `LOG_LEVEL` — server basics.
+- `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` — fixed-window rate limit applied to
+  `/api` per client IP (defaults: 60s / 120 requests). Responses include
+  `X-RateLimit-*` headers; exceeding the limit returns `429 RATE_LIMITED`.
+- `CORS_ORIGINS` — comma-separated list of allowed origins, or `*` for any.
+- `STELLAR_*` / `NATIVE_ASSET` — mock Stellar / Soroban settings.
+
+## Tests
+
+Unit tests use the built-in Node test runner (no extra dependencies):
+
+```bash
+npm test
+```
 
 ## License
 
