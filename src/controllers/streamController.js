@@ -17,8 +17,8 @@ async function create(req, res) {
  * List streams, optionally filtered by ?sender= and/or ?recipient=.
  */
 function list(req, res) {
-  const { sender, recipient } = req.query;
-  const streams = streamService.listStreams({ sender, recipient });
+  const { sender, recipient, status } = req.query;
+  const streams = streamService.listStreams({ sender, recipient, status });
   res.json({ count: streams.length, streams });
 }
 
