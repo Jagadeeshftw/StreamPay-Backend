@@ -1,0 +1,159 @@
+'use strict';
+
+const store = require('../store');
+const stellarService = require('./stellarService');
+const streamMath = require('./streamMath');
+const ApiError = require('../utils/ApiError');
+const logger = require('../utils/logger');
+const { newStreamId } = require('../utils/ids');
+const { nowSeconds } = require('../utils/time');
+const money = require('../utils/money');
+
+/**
+ * Build the public-facing view of a stream, enriching the stored record with
+ * computed amounts at the given time.
+ */
+function toView(stream, atTime) {
+  const at = atTime || nowSeconds();
+  return {
+    id: stream.id,
+    sender: stream.sender,
+    recipient: stream.recipient,
+    total: stream.total,
+    asset: stream.asset,
+    startTime: stream.startTime,
+    endTime: stream.endTime,
+    status: stream.status,
+    withdrawn: stream.withdrawn,
+    streamed: streamMath.streamedAmount(stream, at),
+    withdrawable: streamMath.withdrawableAmount(stream, at),
+    locked: streamMath.lockedAmount(stream, at),
+    createdAt: stream.createdAt,
+    updatedAt: stream.updatedAt,
+    txHashes: stream.txHashes,
+  };
+}
+
+/**
+ * Create and persist a new stream, locking the sender's funds on-chain (mock).
+ */
+async function createStream(input) {
+  const now = nowSeconds();
+  const startTime = input.startTime || now;
+  const endTime = input.endTime;
+
+  const lock = await stellarService.lockFunds({
+    sender: input.sender,
+    amount: input.total,
+  });
+
+  const stream = {
+    id: newStreamId(),
+    sender: input.sender,
+    recipient: input.recipient,
+    total: money.round(input.total),
+    asset: lock.asset,
+    startTime,
+    endTime,
+    status: 'active',
+    withdrawn: 0,
+    createdAt: now,
+    updatedAt: now,
+    txHashes: { lock: lock.txHash },
+  };
+
+  store.insertStream(stream);
+  logger.info('stream created', { id: stream.id, sender: stream.sender });
+  return toView(stream, now);
+}
+
+/**
+ * Fetch a single stream view by id or throw 404.
+ */
+function getStream(id) {
+  const stream = store.getStream(id);
+  if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
+  return toView(stream);
+}
+
+/**
+ * List streams, optionally filtered by sender and/or recipient.
+ */
+function listStreams(filter = {}) {
+  const at = nowSeconds();
+  return store
+    .listStreams()
+    .filter((s) => (filter.sender ? s.sender === filter.sender : true))
+    .filter((s) => (filter.recipient ? s.recipient === filter.recipient : true))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((s) => toView(s, at));
+}
+
+/**
+ * Release the streamed-so-far amount to the recipient.
+ */
+async function withdraw(id) {
+  const stream = store.getStream(id);
+  if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
+
+  const now = nowSeconds();
+  const amount = streamMath.withdrawableAmount(stream, now);
+  if (amount <= 0) {
+    throw ApiError.badRequest('Nothing available to withdraw');
+  }
+
+  const release = await stellarService.releaseFunds({
+    recipient: stream.recipient,
+    amount,
+  });
+
+  stream.withdrawn = money.round(stream.withdrawn + amount);
+  stream.updatedAt = now;
+  stream.txHashes = { ...stream.txHashes, lastWithdraw: release.txHash };
+  if (stream.withdrawn >= stream.total && stream.status === 'active') {
+    stream.status = 'completed';
+  }
+  store.updateStream(stream);
+
+  logger.info('stream withdraw', { id: stream.id, amount });
+  return { stream: toView(stream, now), amount, txHash: release.txHash };
+}
+
+/**
+ * Cancel a stream: recipient keeps what streamed, sender reclaims the rest.
+ */
+async function cancel(id) {
+  const stream = store.getStream(id);
+  if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
+  if (stream.status === 'cancelled') {
+    throw ApiError.conflict('Stream already cancelled');
+  }
+  if (stream.status === 'completed') {
+    throw ApiError.conflict('Stream already completed');
+  }
+
+  const now = nowSeconds();
+  const refund = streamMath.lockedAmount(stream, now);
+
+  const refundTx = await stellarService.refundFunds({
+    sender: stream.sender,
+    amount: refund,
+  });
+
+  stream.status = 'cancelled';
+  stream.updatedAt = now;
+  stream.txHashes = { ...stream.txHashes, refund: refundTx.txHash };
+  store.updateStream(stream);
+
+  logger.info('stream cancelled', { id: stream.id, refund });
+  return { stream: toView(stream, now), refunded: refund, txHash: refundTx.txHash };
+}
+
+module.exports = {
+  toView,
+  createStream,
+  getStream,
+  listStreams,
+  withdraw,
+  cancel,
+};
