@@ -6,6 +6,7 @@ const morgan = require('morgan');
 
 const config = require('./config');
 const routes = require('./routes');
+const requestId = require('./middleware/requestId');
 const requestLogger = require('./middleware/requestLogger');
 const securityHeaders = require('./middleware/securityHeaders');
 const notFound = require('./middleware/notFound');
@@ -20,6 +21,7 @@ function createApp() {
 
   app.use(cors());
   app.use(securityHeaders);
+  app.use(requestId);
   app.use(express.json({ limit: '100kb' }));
   app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
   app.use(requestLogger);
