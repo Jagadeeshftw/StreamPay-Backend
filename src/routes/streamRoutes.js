@@ -21,6 +21,7 @@ router.post('/streams', validate(validateCreateStream), asyncHandler(streamContr
 router.get('/streams', streamController.list);
 router.get('/streams/:id', streamController.getById);
 router.get('/streams/:id/schedule', streamController.getSchedule);
+router.get('/streams/:id/stats', streamController.getStats);
 router.post('/streams/:id/withdraw', validate(validateWithdraw), asyncHandler(streamController.withdraw));
 router.post('/streams/:id/cancel', asyncHandler(streamController.cancel));
 

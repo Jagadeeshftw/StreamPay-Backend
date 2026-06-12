@@ -114,6 +114,34 @@ function getSchedule(id) {
 }
 
 /**
+ * Compute point-in-time statistics for a single stream: streamed/withdrawn/
+ * withdrawable/locked amounts plus the share of the total each represents and
+ * the seconds remaining. Complements the schedule endpoint with live figures.
+ */
+function getStats(id) {
+  const stream = store.getStream(id);
+  if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
+
+  const at = nowSeconds();
+  const streamed = streamMath.streamedAmount(stream, at);
+  const withdrawable = streamMath.withdrawableAmount(stream, at);
+  const locked = streamMath.lockedAmount(stream, at);
+
+  return {
+    id: stream.id,
+    status: stream.status,
+    total: stream.total,
+    streamed,
+    withdrawn: stream.withdrawn,
+    withdrawable,
+    locked,
+    percentStreamed: money.percent(streamed, stream.total),
+    percentWithdrawn: money.percent(stream.withdrawn, stream.total),
+    remainingSeconds: streamMath.remainingSeconds(stream, at),
+  };
+}
+
+/**
  * List streams, optionally filtered by sender, recipient and/or status, with
  * `limit`/`offset` pagination. Returns the page of stream views together with
  * the total number of matches so callers can build pagination controls.
@@ -225,6 +253,7 @@ module.exports = {
   createStream,
   getStream,
   getSchedule,
+  getStats,
   listStreams,
   withdraw,
   cancel,

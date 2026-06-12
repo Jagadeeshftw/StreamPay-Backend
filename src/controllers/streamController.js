@@ -48,6 +48,15 @@ function getSchedule(req, res) {
 }
 
 /**
+ * GET /api/streams/:id/stats
+ * Return live point-in-time statistics for a single stream.
+ */
+function getStats(req, res) {
+  const stats = streamService.getStats(req.params.id);
+  res.json({ stats });
+}
+
+/**
  * POST /api/streams/:id/withdraw
  * Release the amount streamed-so-far to the recipient.
  */
@@ -66,4 +75,4 @@ async function cancel(req, res) {
   res.json(result);
 }
 
-module.exports = { create, list, getById, getSchedule, withdraw, cancel };
+module.exports = { create, list, getById, getSchedule, getStats, withdraw, cancel };
