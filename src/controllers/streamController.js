@@ -36,7 +36,8 @@ function getById(req, res) {
  * Release the amount streamed-so-far to the recipient.
  */
 async function withdraw(req, res) {
-  const result = await streamService.withdraw(req.params.id);
+  const amount = req.validated ? req.validated.amount : undefined;
+  const result = await streamService.withdraw(req.params.id, amount);
   res.json(result);
 }
 
