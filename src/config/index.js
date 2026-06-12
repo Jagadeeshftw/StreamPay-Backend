@@ -11,6 +11,9 @@ const config = {
   port: parseInt(process.env.PORT, 10) || 4000,
   logLevel: process.env.LOG_LEVEL || 'info',
 
+  // Maximum time a request may take before it is failed with 503.
+  requestTimeoutMs: parseInt(process.env.REQUEST_TIMEOUT_MS, 10) || 15000,
+
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 60000,
     max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 120,
@@ -50,6 +53,9 @@ function validate(cfg) {
   }
   if (!Number.isInteger(cfg.rateLimit.max) || cfg.rateLimit.max <= 0) {
     throw new Error(`Invalid RATE_LIMIT_MAX: ${cfg.rateLimit.max}`);
+  }
+  if (!Number.isInteger(cfg.requestTimeoutMs) || cfg.requestTimeoutMs <= 0) {
+    throw new Error(`Invalid REQUEST_TIMEOUT_MS: ${cfg.requestTimeoutMs}`);
   }
   return cfg;
 }
