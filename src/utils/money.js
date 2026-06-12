@@ -34,4 +34,22 @@ function subtract(a, b) {
   return round(Math.max(0, a - b));
 }
 
-module.exports = { DECIMALS, round, parseAmount, subtract };
+/**
+ * Sum a list of amounts, rounding once at the end to avoid accumulated drift.
+ */
+function sum(amounts) {
+  let total = 0;
+  for (const amount of amounts) total += amount;
+  return round(total);
+}
+
+/**
+ * What fraction of `total` is `part`, expressed as a percentage rounded to two
+ * decimals. A zero total yields 0 to avoid division by zero.
+ */
+function percent(part, total) {
+  if (!total) return 0;
+  return Math.round((part / total) * 10000) / 100;
+}
+
+module.exports = { DECIMALS, round, parseAmount, subtract, sum, percent };
