@@ -48,4 +48,20 @@ function validateCreateStream(body) {
   };
 }
 
-module.exports = { validateCreateStream };
+/**
+ * Validate an optional partial-withdraw payload. When `amount` is omitted the
+ * full withdrawable balance is released. When present it must be a positive
+ * number.
+ */
+function validateWithdraw(body) {
+  if (body.amount === undefined || body.amount === null) {
+    return { value: {} };
+  }
+  const amount = money.parseAmount(body.amount);
+  if (amount === null) {
+    return { error: ['amount must be a positive number when provided'] };
+  }
+  return { value: { amount } };
+}
+
+module.exports = { validateCreateStream, validateWithdraw };
