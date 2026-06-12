@@ -4,6 +4,11 @@ const money = require('../utils/money');
 const stellarService = require('../services/stellarService');
 const { nowSeconds } = require('../utils/time');
 
+// Reject streams whose window is absurdly long; a decade is well beyond any
+// realistic payroll/vesting schedule and likely indicates a unit mistake
+// (e.g. milliseconds passed where seconds were expected).
+const MAX_DURATION_SECONDS = 10 * 365 * 24 * 3600;
+
 /**
  * Validate the payload for creating a stream. Returns either { value } with a
  * cleaned record or { error } with a list of human-readable messages.
@@ -32,6 +37,8 @@ function validateCreateStream(body) {
   if (!Number.isFinite(startTime)) {
     errors.push('startTime must be a unix timestamp in seconds');
     startTime = now;
+  } else if (startTime < 0) {
+    errors.push('startTime must not be negative');
   }
 
   const endTime = Number(body.endTime);
@@ -39,6 +46,8 @@ function validateCreateStream(body) {
     errors.push('endTime is required and must be a unix timestamp in seconds');
   } else if (endTime <= startTime) {
     errors.push('endTime must be after startTime');
+  } else if (endTime - startTime > MAX_DURATION_SECONDS) {
+    errors.push('stream duration must not exceed 10 years');
   }
 
   if (errors.length) return { error: errors };
