@@ -67,10 +67,24 @@ function remainingSeconds(stream, atTime) {
   return Math.max(0, endTime - atTime);
 }
 
+/**
+ * Project how much will have streamed at a series of future timestamps. Returns
+ * an array of `{ time, streamed }` points, useful for charting a vesting curve
+ * without recomputing the math client-side. Timestamps are evaluated as given;
+ * callers control whether they fall inside or outside the stream window.
+ */
+function vestingProjection(stream, times) {
+  return times.map((time) => ({
+    time,
+    streamed: streamedAmount(stream, time),
+  }));
+}
+
 module.exports = {
   streamedAmount,
   withdrawableAmount,
   lockedAmount,
   progress,
   remainingSeconds,
+  vestingProjection,
 };

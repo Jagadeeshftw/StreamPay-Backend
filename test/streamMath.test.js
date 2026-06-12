@@ -49,3 +49,12 @@ test('remainingSeconds counts down to zero', () => {
   assert.equal(streamMath.remainingSeconds(sampleStream(), 150), 50);
   assert.equal(streamMath.remainingSeconds(sampleStream(), 250), 0);
 });
+
+test('vestingProjection maps timestamps to streamed amounts', () => {
+  const points = streamMath.vestingProjection(sampleStream(), [50, 150, 300]);
+  assert.deepEqual(points, [
+    { time: 50, streamed: 0 },
+    { time: 150, streamed: 500 },
+    { time: 300, streamed: 1000 },
+  ]);
+});
