@@ -5,6 +5,7 @@ const streamMath = require('./streamMath');
 const money = require('../utils/money');
 const { nowSeconds } = require('../utils/time');
 const { STREAM_STATUS } = require('../constants/streamStatus');
+const config = require('../config');
 
 /**
  * Aggregate withdrawable balance for a single user across every stream where
@@ -51,6 +52,8 @@ function overview() {
   }
 
   return {
+    network: config.stellar.network,
+    asset: config.stellar.nativeAsset,
     streams: streams.length,
     activeStreams: active,
     cancelledStreams: cancelled,
