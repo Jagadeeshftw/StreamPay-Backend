@@ -14,13 +14,25 @@ const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
 /**
+ * Resolve CORS options from config. An origins list of `*` keeps CORS fully
+ * open; otherwise only the explicitly allowed origins are permitted.
+ */
+function corsOptions() {
+  const origins = config.corsOrigins;
+  if (origins.length === 1 && origins[0] === '*') {
+    return {};
+  }
+  return { origin: origins };
+}
+
+/**
  * Build and configure the Express application. Kept separate from the server
  * bootstrap so it can be imported by tests without binding a port.
  */
 function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors(corsOptions()));
   app.use(securityHeaders);
   app.use(requestId);
   app.use(express.json({ limit: '100kb' }));

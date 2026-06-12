@@ -16,6 +16,14 @@ const config = {
     max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 120,
   },
 
+  // Comma-separated list of allowed CORS origins. Defaults to '*' (any origin)
+  // to keep local development frictionless; set CORS_ORIGINS in production to
+  // restrict which front-ends may call the API.
+  corsOrigins: (process.env.CORS_ORIGINS || '*')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+
   stellar: {
     network: process.env.STELLAR_NETWORK || 'testnet',
     horizonUrl:
