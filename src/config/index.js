@@ -24,4 +24,15 @@ const config = {
   },
 };
 
-module.exports = config;
+/**
+ * Validate critical config values at load time. Throws early with a clear
+ * message rather than failing mysteriously later.
+ */
+function validate(cfg) {
+  if (!Number.isInteger(cfg.port) || cfg.port <= 0 || cfg.port > 65535) {
+    throw new Error(`Invalid PORT: ${cfg.port}`);
+  }
+  return cfg;
+}
+
+module.exports = validate(config);
