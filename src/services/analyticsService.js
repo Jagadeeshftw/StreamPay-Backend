@@ -4,6 +4,7 @@ const store = require('../store');
 const streamMath = require('./streamMath');
 const money = require('../utils/money');
 const { nowSeconds } = require('../utils/time');
+const { STREAM_STATUS } = require('../constants/streamStatus');
 
 /**
  * Aggregate withdrawable balance for a single user across every stream where
@@ -42,9 +43,9 @@ function overview() {
     totalStreamed = money.round(totalStreamed + streamMath.streamedAmount(s, at));
     totalLocked = money.round(totalLocked + streamMath.lockedAmount(s, at));
     totalWithdrawn = money.round(totalWithdrawn + s.withdrawn);
-    if (s.status === 'active') active += 1;
-    if (s.status === 'cancelled') cancelled += 1;
-    if (s.status === 'completed') completed += 1;
+    if (s.status === STREAM_STATUS.ACTIVE) active += 1;
+    if (s.status === STREAM_STATUS.CANCELLED) cancelled += 1;
+    if (s.status === STREAM_STATUS.COMPLETED) completed += 1;
   }
 
   return {
