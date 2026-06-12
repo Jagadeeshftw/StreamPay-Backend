@@ -8,6 +8,7 @@ const logger = require('../utils/logger');
 const { newStreamId } = require('../utils/ids');
 const { nowSeconds } = require('../utils/time');
 const money = require('../utils/money');
+const { STREAM_STATUS } = require('../constants/streamStatus');
 
 /**
  * Build the public-facing view of a stream, enriching the stored record with
@@ -55,7 +56,7 @@ async function createStream(input) {
     asset: lock.asset,
     startTime,
     endTime,
-    status: 'active',
+    status: STREAM_STATUS.ACTIVE,
     withdrawn: 0,
     createdAt: now,
     updatedAt: now,
@@ -110,8 +111,8 @@ async function withdraw(id) {
   stream.withdrawn = money.round(stream.withdrawn + amount);
   stream.updatedAt = now;
   stream.txHashes = { ...stream.txHashes, lastWithdraw: release.txHash };
-  if (stream.withdrawn >= stream.total && stream.status === 'active') {
-    stream.status = 'completed';
+  if (stream.withdrawn >= stream.total && stream.status === STREAM_STATUS.ACTIVE) {
+    stream.status = STREAM_STATUS.COMPLETED;
   }
   store.updateStream(stream);
 
@@ -125,10 +126,10 @@ async function withdraw(id) {
 async function cancel(id) {
   const stream = store.getStream(id);
   if (!stream) throw ApiError.notFound(`Stream ${id} not found`);
-  if (stream.status === 'cancelled') {
+  if (stream.status === STREAM_STATUS.CANCELLED) {
     throw ApiError.conflict('Stream already cancelled');
   }
-  if (stream.status === 'completed') {
+  if (stream.status === STREAM_STATUS.COMPLETED) {
     throw ApiError.conflict('Stream already completed');
   }
 
@@ -140,7 +141,7 @@ async function cancel(id) {
     amount: refund,
   });
 
-  stream.status = 'cancelled';
+  stream.status = STREAM_STATUS.CANCELLED;
   stream.updatedAt = now;
   stream.txHashes = { ...stream.txHashes, refund: refundTx.txHash };
   store.updateStream(stream);
