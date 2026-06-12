@@ -28,6 +28,49 @@ npm start
 
 The server listens on `PORT` (default `4000`).
 
+## API
+
+All endpoints are mounted under `/api`.
+
+### Health
+
+`GET /api/health` — liveness probe with runtime context.
+
+### Streams
+
+`POST /api/streams` — create a stream.
+
+```json
+{
+  "sender": "GALICE...",
+  "recipient": "GBOB...",
+  "total": 1000,
+  "startTime": 1700000000,
+  "endTime": 1700003600
+}
+```
+
+`startTime` is optional (defaults to now). `endTime` is required and must be
+after `startTime`. `total` must be a positive number.
+
+`GET /api/streams` — list streams. Optional query filters: `sender`,
+`recipient`, `status` (`active` | `completed` | `cancelled`).
+
+`GET /api/streams/:id` — fetch a single stream.
+
+`POST /api/streams/:id/withdraw` — release streamed-so-far to the recipient.
+Optional body `{ "amount": 100 }` for a partial withdrawal; omitting it
+withdraws the full available balance.
+
+`POST /api/streams/:id/cancel` — sender cancels and reclaims the remainder.
+
+### Balances & analytics
+
+`GET /api/balances?user=GBOB...` — total withdrawable for a user across streams.
+
+`GET /api/analytics` — protocol-wide totals: total streamed, active streams,
+total locked.
+
 ## License
 
 MIT
