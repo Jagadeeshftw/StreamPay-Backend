@@ -30,6 +30,7 @@ function toView(stream, atTime) {
     withdrawable: streamMath.withdrawableAmount(stream, at),
     locked: streamMath.lockedAmount(stream, at),
     progress: streamMath.progress(stream, at),
+    remainingSeconds: streamMath.remainingSeconds(stream, at),
     createdAt: stream.createdAt,
     updatedAt: stream.updatedAt,
     txHashes: stream.txHashes,
