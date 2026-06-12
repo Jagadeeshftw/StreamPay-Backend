@@ -58,4 +58,19 @@ function progress(stream, atTime) {
   return Math.round((elapsed / (endTime - startTime)) * 10000) / 10000;
 }
 
-module.exports = { streamedAmount, withdrawableAmount, lockedAmount, progress };
+/**
+ * Whole seconds remaining until the stream is fully streamed. Zero once the
+ * window has closed (or for a degenerate window once it has started).
+ */
+function remainingSeconds(stream, atTime) {
+  const { endTime } = stream;
+  return Math.max(0, endTime - atTime);
+}
+
+module.exports = {
+  streamedAmount,
+  withdrawableAmount,
+  lockedAmount,
+  progress,
+  remainingSeconds,
+};
