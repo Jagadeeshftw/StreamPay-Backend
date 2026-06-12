@@ -34,7 +34,11 @@ All endpoints are mounted under `/api`.
 
 ### Health
 
-`GET /api/health` — liveness probe with runtime context.
+`GET /api/health` — health probe with runtime context.
+
+`GET /api/health/live` — liveness probe; confirms the process is up.
+
+`GET /api/health/ready` — readiness probe; confirms the app can serve traffic.
 
 `GET /api/version` — service name, version and Node runtime, for deploy checks.
 
@@ -53,7 +57,8 @@ All endpoints are mounted under `/api`.
 ```
 
 `startTime` is optional (defaults to now). `endTime` is required and must be
-after `startTime`. `total` must be a positive number.
+after `startTime`; the window must be at least 60 seconds and at most 10 years.
+`total` must be a positive number not exceeding 1e12.
 
 `GET /api/streams` — list streams. Optional query filters: `sender`,
 `recipient`, `status` (`active` | `completed` | `cancelled`). Paginated via
@@ -61,6 +66,12 @@ after `startTime`. `total` must be a positive number.
 `count` (this page), `total` (all matches), `limit` and `offset`.
 
 `GET /api/streams/:id` — fetch a single stream.
+
+`GET /api/streams/:id/schedule` — the stream's vesting schedule: window,
+duration, per-second release rate and projected milestones (0/25/50/75/100%).
+
+`GET /api/streams/:id/stats` — live point-in-time figures: streamed, withdrawn,
+withdrawable and locked amounts plus the percentage streamed/withdrawn.
 
 `POST /api/streams/:id/withdraw` — release streamed-so-far to the recipient.
 Optional body `{ "amount": 100 }` for a partial withdrawal; omitting it
@@ -71,6 +82,9 @@ withdraws the full available balance.
 ### Balances & analytics
 
 `GET /api/balances?user=GBOB...` — total withdrawable for a user across streams.
+
+`GET /api/withdrawable` — protocol-wide withdrawable balances grouped by
+recipient, sorted from largest to smallest.
 
 `GET /api/analytics` — protocol-wide totals: total streamed, active streams,
 total locked.
@@ -89,17 +103,21 @@ Errors use a consistent JSON envelope:
 }
 ```
 
-`code` is a stable, machine-readable identifier (`BAD_REQUEST`, `NOT_FOUND`,
-`CONFLICT`, `RATE_LIMITED`, `INTERNAL_ERROR`) that clients can switch on
+`code` is a stable, machine-readable identifier (`BAD_REQUEST`, `FORBIDDEN`,
+`NOT_FOUND`, `CONFLICT`, `UNPROCESSABLE_ENTITY`, `RATE_LIMITED`,
+`SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`) that clients can switch on
 independently of the human-readable `message`. Every response also carries an
 `X-Request-Id` header (echoed from the request when supplied) for log
-correlation.
+correlation, and `/api` responses are returned with `Cache-Control: no-store`
+since the figures are time-sensitive.
 
 ## Configuration
 
 All settings are read from environment variables (see `.env.example`):
 
 - `PORT`, `NODE_ENV`, `LOG_LEVEL` — server basics.
+- `REQUEST_TIMEOUT_MS` — deadline after which a request is failed with
+  `503 SERVICE_UNAVAILABLE` (default: 15000).
 - `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` — fixed-window rate limit applied to
   `/api` per client IP (defaults: 60s / 120 requests). Responses include
   `X-RateLimit-*` headers; exceeding the limit returns `429 RATE_LIMITED`.
