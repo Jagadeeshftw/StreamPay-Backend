@@ -11,6 +11,7 @@ const requestTimeout = require('./middleware/requestTimeout');
 const requestLogger = require('./middleware/requestLogger');
 const createRateLimiter = require('./middleware/rateLimit');
 const securityHeaders = require('./middleware/securityHeaders');
+const jsonBodyGuard = require('./middleware/jsonBodyGuard');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -38,6 +39,7 @@ function createApp() {
   app.use(requestId);
   app.use(requestTimeout(config.requestTimeoutMs));
   app.use(express.json({ limit: '100kb' }));
+  app.use(jsonBodyGuard);
   app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
   app.use(requestLogger);
 
