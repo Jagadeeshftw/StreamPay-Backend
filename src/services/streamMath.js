@@ -2,6 +2,7 @@
 
 const { clamp } = require('../utils/time');
 const money = require('../utils/money');
+const { STREAM_STATUS } = require('../constants/streamStatus');
 
 /**
  * Core streaming math.
@@ -42,7 +43,7 @@ function withdrawableAmount(stream, atTime) {
  * cancelled this becomes zero because the remainder was refunded.
  */
 function lockedAmount(stream, atTime) {
-  if (stream.status === 'cancelled') return 0;
+  if (stream.status === STREAM_STATUS.CANCELLED) return 0;
   const streamed = streamedAmount(stream, atTime);
   return money.subtract(stream.total, streamed);
 }
