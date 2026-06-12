@@ -10,6 +10,7 @@ const requestId = require('./middleware/requestId');
 const requestTimeout = require('./middleware/requestTimeout');
 const requestLogger = require('./middleware/requestLogger');
 const createRateLimiter = require('./middleware/rateLimit');
+const noCache = require('./middleware/noCache');
 const securityHeaders = require('./middleware/securityHeaders');
 const jsonBodyGuard = require('./middleware/jsonBodyGuard');
 const notFound = require('./middleware/notFound');
@@ -48,7 +49,7 @@ function createApp() {
     res.json({ name: 'streampay-backend', docs: '/api/health' });
   });
 
-  app.use('/api', createRateLimiter(), routes);
+  app.use('/api', noCache, createRateLimiter(), routes);
 
   app.use(notFound);
   app.use(errorHandler);
