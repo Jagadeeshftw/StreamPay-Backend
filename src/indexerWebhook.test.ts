@@ -25,16 +25,16 @@ function sign(body: string): string {
 }
 
 describe("POST /webhooks/indexer", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env.INDEXER_WEBHOOK_SECRET = secret;
     process.env.API_KEYS = "test-1234";
     refreshApiKeyStore();
-    eventIngestionService.reset();
+    await eventIngestionService.reset();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
-    eventIngestionService.reset();
+    await eventIngestionService.reset();
     apiKeyStore.clear();
     delete process.env.INDEXER_WEBHOOK_SECRET;
     delete process.env.API_KEYS;
@@ -263,16 +263,16 @@ describe("POST /webhooks/indexer - settlement idempotency", () => {
     },
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env.INDEXER_WEBHOOK_SECRET = secret;
     process.env.API_KEYS = "test-1234";
     refreshApiKeyStore();
-    eventIngestionService.reset();
+    await eventIngestionService.reset();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
-    eventIngestionService.reset();
+    await eventIngestionService.reset();
     apiKeyStore.clear();
     delete process.env.INDEXER_WEBHOOK_SECRET;
     delete process.env.API_KEYS;
@@ -364,6 +364,7 @@ describe("POST /webhooks/indexer - settlement idempotency", () => {
 
     // In a real implementation, settlementProcessor would be called exactly once
     // For this test, we verify the ingestion service correctly identifies duplicates
+    expect(settlementProcessor).not.toHaveBeenCalled();
     expect(responses[0].body.duplicate).toBe(false);
     expect(responses[1].body.duplicate).toBe(true);
     expect(responses[2].body.duplicate).toBe(true);
@@ -454,7 +455,7 @@ describe("POST /webhooks/indexer - settlement idempotency", () => {
     expect(firstResponse.body.duplicate).toBe(false);
 
     // Reset the service (simulating service restart)
-    eventIngestionService.reset();
+    await eventIngestionService.reset();
 
     // Second delivery after reset should be treated as new
     const secondResponse = await request(app)

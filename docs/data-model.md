@@ -37,6 +37,17 @@ The core table for managing payment streams aligned with the Soroban contract mo
 | `cancelled` | Stream was cancelled before completion |
 | `completed` | Stream finished its full duration |
 
+### `processed_indexer_events`
+
+Stores indexer webhook event ids after HMAC signature and payload validation.
+The primary key makes replay detection durable across deploys and service
+replicas.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `event_id` | `varchar(255)` | PRIMARY KEY | Unique indexer event identifier |
+| `received_at` | `timestamp` | NOT NULL, DEFAULT `now()` | First accepted delivery timestamp |
+
 ## Indexes
 
 The following indexes are created for efficient querying:
@@ -48,6 +59,7 @@ The following indexes are created for efficient querying:
 | `streams_status_idx` | `status` | Filter streams by status |
 | `streams_chain_id_idx` | `chain_id` | Filter streams by blockchain network |
 | `streams_created_at_idx` | `created_at` | Sort/filter by creation time |
+| `processed_indexer_events_pkey` | `event_id` | Atomic replay detection for indexer webhooks |
 
 ## Invariants
 

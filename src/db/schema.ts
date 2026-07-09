@@ -114,3 +114,11 @@ export type WebhookSubscription = typeof webhookSubscriptions.$inferSelect;
 export type NewWebhookSubscription = typeof webhookSubscriptions.$inferInsert;
 export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
 export type NewWebhookDelivery = typeof webhookDeliveries.$inferInsert;
+
+export const processedIndexerEvents = pgTable("processed_indexer_events", {
+  eventId: varchar("event_id", { length: 255 }).primaryKey(),
+  receivedAt: timestamp("received_at").defaultNow().notNull(),
+});
+
+export type ProcessedIndexerEvent = typeof processedIndexerEvents.$inferSelect;
+export type NewProcessedIndexerEvent = typeof processedIndexerEvents.$inferInsert;

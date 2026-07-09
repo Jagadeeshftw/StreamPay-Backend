@@ -15,6 +15,13 @@
       "when": 1781678686511,
       "tag": "0001_add_streams_deleted_at",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781680800000,
+      "tag": "0002_create_processed_indexer_events",
+      "breakpoints": true
     }
   ]
 }

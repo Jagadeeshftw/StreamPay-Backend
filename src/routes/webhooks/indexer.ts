@@ -12,7 +12,7 @@ router.post(
   "/",
   apiKeyAuthMiddleware,
   rawJsonBodyParser,
-  (req: Request<Record<string, never>, unknown, Buffer>, res: Response) => {
+  async (req: Request<Record<string, never>, unknown, Buffer>, res: Response) => {
     if (!Buffer.isBuffer(req.body)) {
       return res.status(400).json({
         error: "invalid_body",
@@ -21,7 +21,7 @@ router.post(
     }
 
     const signatureHeader = req.header("x-indexer-signature") ?? undefined;
-    const result = eventIngestionService.ingest(req.body, signatureHeader);
+    const result = await eventIngestionService.ingest(req.body, signatureHeader);
 
     if (!result.accepted) {
       const statusByCode = {
@@ -29,6 +29,7 @@ router.post(
         invalid_signature: 401,
         invalid_json: 400,
         invalid_payload: 400,
+        idempotency_unavailable: 503,
       } as const;
 
       return res.status(statusByCode[result.code]).json({

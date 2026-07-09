@@ -1,4 +1,9 @@
 import crypto from "crypto";
+import {
+  InMemoryProcessedIndexerEventStore,
+  ProcessedIndexerEventRepository,
+  type ProcessedIndexerEventStore,
+} from "../repositories/processedIndexerEventRepository";
 
 export type IndexerEventPayload = {
   eventId: string;
@@ -20,7 +25,8 @@ export type IngestionFailureCode =
   | "missing_secret"
   | "invalid_signature"
   | "invalid_json"
-  | "invalid_payload";
+  | "invalid_payload"
+  | "idempotency_unavailable";
 
 export type IngestionFailureResult = {
   accepted: false;
@@ -33,9 +39,9 @@ export type IngestionResult = IngestionSuccessResult | IngestionFailureResult;
 const SIGNATURE_PREFIX = "sha256=";
 
 export class EventIngestionService {
-  private readonly processedEventIds = new Set<string>();
+  constructor(private readonly processedEvents: ProcessedIndexerEventStore) {}
 
-  ingest(rawBody: Buffer, signatureHeader: string | undefined): IngestionResult {
+  async ingest(rawBody: Buffer, signatureHeader: string | undefined): Promise<IngestionResult> {
     const secret = process.env.INDEXER_WEBHOOK_SECRET;
 
     if (!secret) {
@@ -75,25 +81,26 @@ export class EventIngestionService {
       };
     }
 
-    if (this.processedEventIds.has(event.eventId)) {
+    let firstDelivery: boolean;
+    try {
+      firstDelivery = await this.processedEvents.record(event.eventId);
+    } catch {
       return {
-        accepted: true,
-        duplicate: true,
-        event,
+        accepted: false,
+        code: "idempotency_unavailable",
+        message: "Webhook replay protection is unavailable.",
       };
     }
 
-    this.processedEventIds.add(event.eventId);
-
     return {
       accepted: true,
-      duplicate: false,
+      duplicate: !firstDelivery,
       event,
     };
   }
 
-  reset(): void {
-    this.processedEventIds.clear();
+  async reset(): Promise<void> {
+    await this.processedEvents.reset();
   }
 
   private isValidSignature(rawBody: Buffer, signatureHeader: string, secret: string): boolean {
@@ -137,4 +144,11 @@ export class EventIngestionService {
   }
 }
 
-export const eventIngestionService = new EventIngestionService();
+function createDefaultReplayStore(): ProcessedIndexerEventStore {
+  if (process.env.NODE_ENV === "test") {
+    return new InMemoryProcessedIndexerEventStore();
+  }
+  return new ProcessedIndexerEventRepository();
+}
+
+export const eventIngestionService = new EventIngestionService(createDefaultReplayStore());
