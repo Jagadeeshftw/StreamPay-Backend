@@ -12,9 +12,14 @@ const ApiError = require('../utils/ApiError');
 function createRateLimiter(options = {}) {
   const windowMs = options.windowMs || config.rateLimit.windowMs;
   const max = options.max || config.rateLimit.max;
+  const skip = options.skip;
   const hits = new Map();
 
   return function rateLimit(req, res, next) {
+    if (skip && skip(req)) {
+      return next();
+    }
+
     const key = req.ip || req.connection?.remoteAddress || 'unknown';
     const now = Date.now();
 

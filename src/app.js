@@ -49,7 +49,11 @@ function createApp() {
     res.json({ name: 'streampay-backend', docs: '/api/health' });
   });
 
-  app.use('/api', noCache, createRateLimiter(), routes);
+  // Health checks and version probes are exempt from rate limiting so
+  // orchestrators and monitoring tools can poll freely.
+  const healthPaths = ['/api/health', '/api/health/live', '/api/health/ready', '/api/version'];
+  const skipHealth = (req) => healthPaths.includes(req.path);
+  app.use('/api', noCache, createRateLimiter({ skip: skipHealth }), routes);
 
   app.use(notFound);
   app.use(errorHandler);
