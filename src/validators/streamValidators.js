@@ -3,6 +3,7 @@
 const money = require('../utils/money');
 const stellarService = require('../services/stellarService');
 const { nowSeconds } = require('../utils/time');
+const { BATCH } = require('../constants/batch');
 
 // Reject streams whose window is absurdly long; a decade is well beyond any
 // realistic payroll/vesting schedule and likely indicates a unit mistake
@@ -84,4 +85,73 @@ function validateWithdraw(body) {
   return { value: { amount } };
 }
 
-module.exports = { validateCreateStream, validateWithdraw };
+/**
+ * Validate a batch-update payload: `{ updates: [{ id, action, amount? }] }`.
+ * `action` must be "withdraw" (optional `amount` for a partial withdraw) or
+ * "cancel". Rejects an empty or oversized batch, malformed items, and
+ * duplicate ids within the same batch up front so a single request cannot
+ * apply the same id's action twice.
+ */
+function validateBatchUpdate(body) {
+  const errors = [];
+  const updates = body.updates;
+
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return { error: ['updates must be a non-empty array'] };
+  }
+  if (updates.length > BATCH.MAX_ITEMS) {
+    return { error: [`updates must not exceed ${BATCH.MAX_ITEMS} items`] };
+  }
+
+  const seenIds = new Set();
+  const cleaned = [];
+
+  updates.forEach((item, index) => {
+    const prefix = `updates[${index}]`;
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      errors.push(`${prefix} must be an object`);
+      return;
+    }
+
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    let idValid = true;
+    if (!id) {
+      errors.push(`${prefix}.id is required`);
+      idValid = false;
+    } else if (!id.startsWith('stream_')) {
+      errors.push(`${prefix}.id is not a valid stream id`);
+      idValid = false;
+    } else if (seenIds.has(id)) {
+      errors.push(`${prefix}.id "${id}" is duplicated in this batch`);
+      idValid = false;
+    } else {
+      seenIds.add(id);
+    }
+
+    const action = item.action;
+    const actionValid = BATCH.ACTIONS.includes(action);
+    if (!actionValid) {
+      errors.push(`${prefix}.action must be one of ${BATCH.ACTIONS.join(', ')}`);
+    }
+
+    let amount;
+    if (actionValid && action === 'withdraw' && item.amount !== undefined && item.amount !== null) {
+      amount = money.parseAmount(item.amount);
+      if (amount === null) {
+        errors.push(`${prefix}.amount must be a positive number when provided`);
+      }
+    } else if (actionValid && action === 'cancel' && item.amount !== undefined) {
+      errors.push(`${prefix}.amount is not applicable to a cancel action`);
+    }
+
+    if (idValid && actionValid) {
+      cleaned.push({ id, action, amount });
+    }
+  });
+
+  if (errors.length) return { error: errors };
+
+  return { value: { updates: cleaned } };
+}
+
+module.exports = { validateCreateStream, validateWithdraw, validateBatchUpdate };

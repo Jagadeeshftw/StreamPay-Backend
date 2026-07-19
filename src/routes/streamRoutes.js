@@ -5,7 +5,11 @@ const streamController = require('../controllers/streamController');
 const validate = require('../middleware/validate');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { validateCreateStream, validateWithdraw } = require('../validators/streamValidators');
+const {
+  validateCreateStream,
+  validateWithdraw,
+  validateBatchUpdate,
+} = require('../validators/streamValidators');
 
 const router = Router();
 
@@ -18,6 +22,7 @@ router.param('id', (req, res, next, id) => {
 });
 
 router.post('/streams', validate(validateCreateStream), asyncHandler(streamController.create));
+router.post('/streams/batch', validate(validateBatchUpdate), asyncHandler(streamController.batchUpdate));
 router.get('/streams', streamController.list);
 router.get('/streams/:id', streamController.getById);
 router.get('/streams/:id/schedule', streamController.getSchedule);
