@@ -140,7 +140,7 @@ Errors use a consistent JSON envelope:
 ```
 
 `code` is a stable, machine-readable identifier (`BAD_REQUEST`, `FORBIDDEN`,
-`NOT_FOUND`, `CONFLICT`, `UNPROCESSABLE_ENTITY`, `RATE_LIMITED`,
+`NOT_FOUND`, `METHOD_NOT_ALLOWED`, `CONFLICT`, `UNPROCESSABLE_ENTITY`, `RATE_LIMITED`,
 `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`) that clients can switch on
 independently of the human-readable `message`. Every response also carries an
 `X-Request-Id` header (echoed from the request when supplied) for log

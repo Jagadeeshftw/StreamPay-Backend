@@ -5,11 +5,8 @@ const streamController = require('../controllers/streamController');
 const validate = require('../middleware/validate');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const {
-  validateCreateStream,
-  validateWithdraw,
-  validateBatchUpdate,
-} = require('../validators/streamValidators');
+const { validateCreateStream, validateWithdraw } = require('../validators/streamValidators');
+const methodNotAllowed = require('../middleware/methodNotAllowed');
 
 const router = Router();
 
@@ -21,13 +18,29 @@ router.param('id', (req, res, next, id) => {
   next();
 });
 
-router.post('/streams', validate(validateCreateStream), asyncHandler(streamController.create));
-router.post('/streams/batch', validate(validateBatchUpdate), asyncHandler(streamController.batchUpdate));
-router.get('/streams', streamController.list);
-router.get('/streams/:id', streamController.getById);
-router.get('/streams/:id/schedule', streamController.getSchedule);
-router.get('/streams/:id/stats', streamController.getStats);
-router.post('/streams/:id/withdraw', validate(validateWithdraw), asyncHandler(streamController.withdraw));
-router.post('/streams/:id/cancel', asyncHandler(streamController.cancel));
+router.route('/streams')
+  .post(validate(validateCreateStream), asyncHandler(streamController.create))
+  .get(streamController.list)
+  .all(methodNotAllowed);
+
+router.route('/streams/:id')
+  .get(streamController.getById)
+  .all(methodNotAllowed);
+
+router.route('/streams/:id/schedule')
+  .get(streamController.getSchedule)
+  .all(methodNotAllowed);
+
+router.route('/streams/:id/stats')
+  .get(streamController.getStats)
+  .all(methodNotAllowed);
+
+router.route('/streams/:id/withdraw')
+  .post(validate(validateWithdraw), asyncHandler(streamController.withdraw))
+  .all(methodNotAllowed);
+
+router.route('/streams/:id/cancel')
+  .post(asyncHandler(streamController.cancel))
+  .all(methodNotAllowed);
 
 module.exports = router;
