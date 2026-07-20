@@ -14,6 +14,7 @@ const noCache = require('./middleware/noCache');
 const securityHeaders = require('./middleware/securityHeaders');
 const jsonBodyGuard = require('./middleware/jsonBodyGuard');
 const notFound = require('./middleware/notFound');
+const methodNotAllowed = require('./middleware/methodNotAllowed');
 const errorHandler = require('./middleware/errorHandler');
 
 /**
@@ -45,9 +46,11 @@ function createApp() {
   app.use(requestLogger);
 
   // Friendly root response.
-  app.get('/', (req, res) => {
-    res.json({ name: 'streampay-backend', docs: '/api/health' });
-  });
+  app.route('/')
+    .get((req, res) => {
+      res.json({ name: 'streampay-backend', docs: '/api/health' });
+    })
+    .all(methodNotAllowed);
 
   app.use('/api', noCache, createRateLimiter(), routes);
 

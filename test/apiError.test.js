@@ -9,6 +9,7 @@ test('codeFor maps known status codes', () => {
   assert.equal(ApiError.codeFor(400), 'BAD_REQUEST');
   assert.equal(ApiError.codeFor(403), 'FORBIDDEN');
   assert.equal(ApiError.codeFor(404), 'NOT_FOUND');
+  assert.equal(ApiError.codeFor(405), 'METHOD_NOT_ALLOWED');
   assert.equal(ApiError.codeFor(409), 'CONFLICT');
   assert.equal(ApiError.codeFor(422), 'UNPROCESSABLE_ENTITY');
   assert.equal(ApiError.codeFor(429), 'RATE_LIMITED');
@@ -22,6 +23,7 @@ test('codeFor falls back by class of status', () => {
 
 test('factory helpers carry the right status and code', () => {
   assert.equal(ApiError.forbidden().statusCode, 403);
+  assert.equal(ApiError.methodNotAllowed().statusCode, 405);
   assert.equal(ApiError.unprocessable().statusCode, 422);
   assert.equal(ApiError.serviceUnavailable().code, 'SERVICE_UNAVAILABLE');
 });

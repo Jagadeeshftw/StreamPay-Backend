@@ -29,6 +29,8 @@ class ApiError extends Error {
         return 'FORBIDDEN';
       case 404:
         return 'NOT_FOUND';
+      case 405:
+        return 'METHOD_NOT_ALLOWED';
       case 409:
         return 'CONFLICT';
       case 422:
@@ -52,6 +54,10 @@ class ApiError extends Error {
 
   static notFound(message) {
     return new ApiError(404, message || 'Resource not found');
+  }
+
+  static methodNotAllowed(message) {
+    return new ApiError(405, message || 'Method not allowed');
   }
 
   static conflict(message) {
