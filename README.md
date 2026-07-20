@@ -79,6 +79,42 @@ withdraws the full available balance.
 
 `POST /api/streams/:id/cancel` — sender cancels and reclaims the remainder.
 
+`POST /api/streams/batch` — apply up to 25 withdraw/cancel actions in a single
+request:
+
+```json
+{
+  "updates": [
+    { "id": "stream_abc", "action": "withdraw", "amount": 100 },
+    { "id": "stream_def", "action": "cancel" }
+  ]
+}
+```
+
+`amount` is optional on `withdraw` (omitting it withdraws the full available
+balance, same as the single-stream endpoint) and not allowed on `cancel`.
+Each item is applied independently and best-effort: one item failing (stream
+not found, already cancelled, nothing withdrawable, etc.) does not stop the
+rest of the batch. The response reports a per-item outcome rather than a
+single pass/fail for the whole request:
+
+```json
+{
+  "results": [
+    { "id": "stream_abc", "action": "withdraw", "ok": true, "stream": { "...": "..." }, "amount": 100, "txHash": "tx_..." },
+    { "id": "stream_def", "action": "cancel", "ok": false, "error": { "message": "Stream stream_def not found", "code": "NOT_FOUND", "statusCode": 404 } }
+  ],
+  "count": 2,
+  "succeeded": 1,
+  "failed": 1
+}
+```
+
+Validation happens up front and rejects the whole request if malformed: an
+empty or oversized batch, an unknown `id`/`action` shape, or the same `id`
+appearing twice in one batch (which would otherwise let a single request
+apply an action to the same stream more than once).
+
 ### Balances & analytics
 
 `GET /api/balances?user=GBOB...` — total withdrawable for a user across streams.

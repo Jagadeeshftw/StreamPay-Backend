@@ -82,4 +82,15 @@ async function cancel(req, res) {
   res.json(result);
 }
 
-module.exports = { create, list, getById, getSchedule, getStats, withdraw, cancel };
+/**
+ * POST /api/streams/batch
+ * Apply a batch of withdraw/cancel actions in one request. Body has been
+ * validated upstream. Always responds 200; each item in `results` carries its
+ * own ok/error outcome so partial application is visible to the caller.
+ */
+async function batchUpdate(req, res) {
+  const result = await streamService.batchUpdate(req.validated.updates);
+  res.json(result);
+}
+
+module.exports = { create, list, getById, getSchedule, getStats, withdraw, cancel, batchUpdate };
