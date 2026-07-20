@@ -2,6 +2,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const morgan = require('morgan');
 
 const config = require('./config');
@@ -35,6 +36,7 @@ function corsOptions() {
 function createApp() {
   const app = express();
 
+  app.use(compression());
   app.use(cors(corsOptions()));
   app.use(securityHeaders);
   app.use(requestId);

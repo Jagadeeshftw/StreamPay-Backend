@@ -16,7 +16,7 @@ to reclaim the unstreamed remainder.
 
 - Node.js + Express
 - In-memory store (no database)
-- `cors`, `dotenv`, `morgan`, `uuid`
+- `compression`, `cors`, `dotenv`, `morgan`, `uuid`
 
 ## Getting started
 
