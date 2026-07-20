@@ -121,6 +121,9 @@ All settings are read from environment variables (see `.env.example`):
 - `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` — fixed-window rate limit applied to
   `/api` per client IP (defaults: 60s / 120 requests). Responses include
   `X-RateLimit-*` headers; exceeding the limit returns `429 RATE_LIMITED`.
+  Health check and version endpoints (`/api/health`, `/api/health/live`,
+  `/api/health/ready`, `/api/version`) are exempt from rate limiting so
+  orchestrators and monitoring tools can poll freely.
 - `CORS_ORIGINS` — comma-separated list of allowed origins, or `*` for any.
 - `STELLAR_*` / `NATIVE_ASSET` — mock Stellar / Soroban settings.
 
