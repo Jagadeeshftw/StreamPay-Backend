@@ -18,8 +18,10 @@ Key security controls include:
   before JSON/raw-body parsing for protected routes.
 - **HMAC verification** of indexer webhook payloads against the raw request
   body, using `INDEXER_WEBHOOK_SECRET`.
-- **Replay protection** via deduplication of `eventId` values in the
-  ingestion service.
+- **Durable replay protection** via a Postgres-backed
+  `processed_indexer_events` ledger keyed by indexer `eventId`. Signature and
+  payload validation run before an event id is recorded, and duplicate ids are
+  rejected atomically by the database unique constraint.
 - **IP-based and API-key-based rate limiting** through `express-rate-limit`.
 - **Strict CORS** allowlists in production (no wildcard).
 
