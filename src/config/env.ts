@@ -50,6 +50,11 @@ export const envSchema = z.object({
   DB_STATEMENT_TIMEOUT: z.coerce.number().min(0).default(30000),
   HEALTH_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   RPC_PROBE_ENABLED: booleanFromEnv.default(false),
+  // OpenTelemetry configuration
+  OTEL_SERVICE_NAME: z.string().default("streampay-backend"),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().default("http://localhost:4318"),
+  SERVICE_VERSION: z.string().default("0.1.0"),
+  OTEL_ENABLED: booleanFromEnv.default(true),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -86,5 +91,9 @@ export const env = process.env.NODE_ENV === "test"
       DB_STATEMENT_TIMEOUT: 10000,
       HEALTH_CHECK_TIMEOUT_MS: 5000,
       RPC_PROBE_ENABLED: false,
+      OTEL_SERVICE_NAME: "streampay-backend",
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://localhost:4318",
+      SERVICE_VERSION: "0.1.0",
+      OTEL_ENABLED: false,
     })
   : validateEnv(process.env);

@@ -2,6 +2,10 @@
  * StreamPay Backend — API gateway for stream management, metering, and settlement.
  */
 
+// Initialize OpenTelemetry tracing before importing any other modules
+import { initializeTracing } from "./telemetry/tracer";
+initializeTracing();
+
 import cors from "cors";
 import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import streamRoutes from "./api/v1/streams";
