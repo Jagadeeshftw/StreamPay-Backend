@@ -213,3 +213,9 @@ Consumers can then upgrade independently without changing delivery semantics.
 That separation is the main reason the outbox record is versioned.
 
 It protects both replay behavior and future schema evolution.
+
+This boundary is covered by the outbox contract tests.
+
+It should remain intact during future refactors.
+
+Consumers can rely on the same deduplication identity.
