@@ -218,3 +218,7 @@ Maintainers can use the documented checklist as the acceptance record.
 It should be updated with any future pagination implementation.
 
 This preserves a clear review trail for race-sensitive API behavior.
+
+The same record supports maintainer sign-off and future adapter migration.
+
+It remains intentionally bounded and deterministic.
