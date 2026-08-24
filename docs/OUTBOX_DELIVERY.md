@@ -219,3 +219,5 @@ This boundary is covered by the outbox contract tests.
 It should remain intact during future refactors.
 
 Consumers can rely on the same deduplication identity.
+
+This is part of the public event contract.
