@@ -125,6 +125,14 @@ recipient, sorted from largest to smallest.
 `GET /api/analytics` — protocol-wide totals: total streamed, active streams,
 total locked.
 
+### Event delivery
+
+Stream lifecycle mutations enqueue a deduplicated event after the state change.
+The outbox state machine is `pending` → `processing` → `delivered`, with
+bounded exponential retry and a terminal `failed` state for poison events.
+The current mock keeps these records in its process store; a production adapter
+can map the same records to a database-backed outbox without changing delivery.
+
 ## Errors
 
 Errors use a consistent JSON envelope:
