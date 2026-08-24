@@ -196,3 +196,20 @@ simple while preserving the contracts required by a future persistent worker.
 
 Maintainers should not remove the state fields merely because the current
 adapter is a Map; they are the compatibility surface for that replacement.
+
+The resulting PR evidence covers both the current mock behavior and the
+requirements a production persistence adapter must satisfy.
+
+This keeps the implementation reviewable without overstating process-local
+durability.
+
+It is safe to migrate the record shape later because producers depend on this
+contract rather than on the storage implementation.
+
+Any adapter change should retain the unique event key and terminal states.
+
+Consumers can then upgrade independently without changing delivery semantics.
+
+That separation is the main reason the outbox record is versioned.
+
+It protects both replay behavior and future schema evolution.
