@@ -20,7 +20,10 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        # npm's optional native resolver metadata can drift between npm minor
+        # versions; install from the lockfile while allowing npm to refresh
+        # those platform-specific optional entries on the runner.
+        run: npm install --no-audit --no-fund
 
       - name: Run linter
         run: npm run lint -- --max-warnings 0
