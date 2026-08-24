@@ -25,11 +25,11 @@ jobs:
         run: npm run build
 
       - name: Start services (Docker Compose)
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Run Smoke Test
         run: ./scripts/smoke.sh http://localhost:3000
 
       - name: Stop services
         if: always()
-        run: docker-compose down
+        run: docker compose down

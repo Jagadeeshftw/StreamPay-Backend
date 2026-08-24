@@ -42,7 +42,6 @@ export function initializeTracing(): void {
     const environment = process.env.NODE_ENV || "development";
 
     // Dynamically require Resource to handle module resolution issues
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ResourceModule = require("@opentelemetry/resources");
     const Resource = ResourceModule.Resource;
 
@@ -64,7 +63,7 @@ export function initializeTracing(): void {
         new HttpInstrumentation({
           // Skip health check endpoints to reduce trace volume
           requestHook: (span, request) => {
-            const url = (request as any).url || "";
+            const url = "url" in request && typeof request.url === "string" ? request.url : "";
             if (url.includes("/health")) {
               span.end();
             }
@@ -106,7 +105,6 @@ export function initializeTracing(): void {
  */
 export function getTracer(moduleName: string) {
   // This will be called after initializeTracing(), so the SDK is active
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { trace } = require("@opentelemetry/api");
   return trace.getTracer(moduleName);
 }
